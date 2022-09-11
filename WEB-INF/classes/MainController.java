@@ -1,21 +1,28 @@
 import jakarta.servlet.*;
 import jakarta.servlet.http.*;
 import java.io.*;
+import java.sql.*;
 import javax.swing.*;
-import controller.home;
 
 public class MainController extends HttpServlet {
-  public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+  public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException{
+    try{
     handleRequest(request,response);
+    }
+    catch(Exception e){
+    }
   }
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+try{
     handleRequest(request,response);
-  }
+    }
+    catch(Exception e){
+    }  }
 
-  public void handleRequest(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException{
+  public void handleRequest(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException,SQLException,ClassNotFoundException{
     String path = req.getRequestURI();
-    String pathChanged = path.replaceAll("/pastebin", "");
+    String pathChanged = (path.indexOf("app")>=0)? path.replaceAll("/pastebin/app", ""):path.replaceAll("/pastebin", "");
     int idx = pathChanged.indexOf("/",1);
     String subPath = pathChanged;
     if(idx != -1)
@@ -24,16 +31,19 @@ public class MainController extends HttpServlet {
     subPath = subPath.equals("")?"/":subPath;
     switch (subPath) {
          case "/":
-              home.handleRequest(req,res);
+              home.handleRequest(req,res,subPath);
             break;
          case "/u":
-              out.println("in user");
+              String temp  = pathChanged.replaceAll("/u","");
+              String route = temp.equals("")?"/":temp;
+              user.handleRequest(req,res,route);
             break;
          case "/admin":
               out.println("in admin");
             break;
         default:
-            out.println("404");
+              home.handleRequest(req,res,subPath);
+
         }
  
   }
