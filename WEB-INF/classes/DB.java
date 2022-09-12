@@ -16,24 +16,33 @@ public class DB {
       st=con.createStatement();
   }
 
-  public int insert(String tableName,String keys, String values) throws IOException {
+public int insert(String tableName,String keys, String values) throws IOException {
   try{
      String query = "INSERT INTO "+tableName+" ("+keys+") VALUES ("+values+")";
      return st.executeUpdate( query );
     }catch(Exception e){
       return -1;
     }
-  }  
+}  
   
 
-    public int delete(String tableName,String condition) throws IOException {
+public int delete(String tableName,String condition) throws IOException {
   try{
      String query = "Delete from "+tableName+" where "+condition+"";
      return st.executeUpdate( query );
     }catch(Exception e){
       return -1;
     }
-  }  
+} 
+
+public int update(String tableName,String values,String condition) throws IOException {
+  try{
+     String query = "Update "+tableName+" SET "+values+" where "+condition+"";
+     return st.executeUpdate( query );
+    }catch(Exception e){
+      return -1;
+    }
+} 
   
   public ResultSet select(Map<String, String> queryMap) throws IOException {
   try{
