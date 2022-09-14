@@ -43,7 +43,8 @@ PrintWriter out = res.getWriter();
       // RequestDispatcher rd = req.getRequestDispatcher("/index.jsp");	
 	    // rd.forward(req,res);
       break;
-       
+      default:
+        HomeService.savePaste(req,res);
     }
 }
 

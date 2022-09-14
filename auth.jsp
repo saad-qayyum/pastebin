@@ -1,9 +1,12 @@
 
 <jsp:include page="header.jsp" />  
 <% 
-        String p = (String)request.getAttribute("page");
-        if(p != null);
-        else p = "Signup";
+String p = (String)request.getAttribute("page");
+if(p != null);
+else p = "Signup";
+String name = (String)session.getAttribute("name");
+if(name != null);
+else name = "";
 %>
 
   <!--body-->
@@ -12,6 +15,7 @@
 
       <div class="col-12 col-lg-4 col-md-6 col-sm-8 p-0 m-auto">
         <form method="post" class="d-flex justify-content-center rounded shadow shadow-lg flex-column p-4 m-auto">
+          <input type="hidden" name="action" value="<%=p%>"/>
           <h3 class="text-center shadow p-2 border-bottom border-secondary"><%=p%></h3>
 
       <div class="fieldsWrapper p-2">
@@ -20,9 +24,11 @@
          
               <label for="inputPassword6" class="col-form-label small">Full name: </label>
           
-              <input class="form-control form-control-sm" required name="name" style="font-size:smaller" />
+              <input class="form-control form-control-sm" required name="name" value="<%=name%>" autocomplete="off" style="font-size:smaller" />
           </div>
 <%}%>
+
+<% if(p != null && !p.equals("Edit Profile")){ %>
 
           <div class=" align-items-center" style="font-size:smaller">
  
@@ -30,12 +36,13 @@
          
               <input class="form-control form-control-sm" required name="username" style="font-size:smaller" />
           </div>
+          <%}%>
 
           <div class=" align-items-center" style="font-size:smaller">
 
               <label for="inputPassword6" class="col-form-label small">Password: </label>
          
-              <input class="form-control form-control-sm" required type="password" name="password" style="font-size:smaller" />
+              <input class="form-control form-control-sm" required type="password" name="password"  autocomplete="off" style="font-size:smaller" />
           </div>
 
 

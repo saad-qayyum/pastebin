@@ -1,0 +1,5 @@
+select username,user.id,count(hits) pasteCount, COALESCE(sum(hits),0) hitsCount
+from user
+left join pastes
+on user.id = pastes.user
+group by user.id;

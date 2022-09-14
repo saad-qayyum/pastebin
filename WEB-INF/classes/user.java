@@ -42,20 +42,36 @@ public class user {
       case "/signup":
         if (
           session != null && (Integer) session.getAttribute("user") != null
-        ) res.sendRedirect("/pastebin/app/u/pastes");
+        ) res.sendRedirect("/pastebin/app/");
         RequestDispatcher rd = req.getRequestDispatcher("/auth.jsp");
         rd.forward(req, res);
+        break;
+        case "/profile":
+        if (
+          !(session != null && (Integer) session.getAttribute("user") != null)
+        ) res.sendRedirect("/pastebin/app/");
+        rd = req.getRequestDispatcher("/auth.jsp");
+        req.setAttribute("page", "Edit Profile");
+        rd.forward(req, res);
+        break;
+        case "/users":
+        if (
+          !(session != null && (Integer) session.getAttribute("user") != null || (Integer) session.getAttribute("role") != 0)
+        ) res.sendRedirect("/pastebin/app/");
+        UserService.showUsers(req, res);
         break;
       case "/login":
         if (
           session != null && (Integer) session.getAttribute("user") != null
-        ) res.sendRedirect("/pastebin/app/u/pastes");
+        ) res.sendRedirect("/pastebin/app/");
         rd = req.getRequestDispatcher("/auth.jsp");
         req.setAttribute("page", "Login");
         rd.forward(req, res);
         break;
       case "/logout":
+        session.removeAttribute("username");
         session.removeAttribute("user");
+        session.removeAttribute("name");
         session.removeAttribute("type");
         res.sendRedirect("/pastebin/app/");
         break;
@@ -79,13 +95,19 @@ public class user {
       case "/signup":
         if (
           session != null && (Integer) session.getAttribute("user") != null
-        ) res.sendRedirect("/pastebin/app/u/pastes");
+        ) res.sendRedirect("/pastebin/app/");
+        UserService.saveUser(req, res);
+        break;
+        case "/profile":
+        if (
+          session != null && (Integer) session.getAttribute("user") != null
+        ) res.sendRedirect("/pastebin/app/");
         UserService.saveUser(req, res);
         break;
       case "/login":
         if (
           session != null && (Integer) session.getAttribute("user") != null
-        ) res.sendRedirect("/pastebin/app/u/pastes");
+        ) res.sendRedirect("/pastebin/app/");
         UserService.loginUser(req, res);
         break;
     }

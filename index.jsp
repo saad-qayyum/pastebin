@@ -1,6 +1,7 @@
 <jsp:include page="header.jsp" />
 
-<% String show=(String)request.getAttribute("show"); String content="" ;String syntax="basic" ; show=(show==null)?"":show;
+<% String show=(String)request.getAttribute("show");String pasteUri=(String)request.getAttribute("pasteUri"); String content="" ;String syntax="basic" ; show=(show==null)?"":show;
+ pasteUri=(pasteUri==null)?"":pasteUri;
   if(!show.equals("")){ content=(String)request.getAttribute("content");syntax=(String)request.getAttribute("syntax"); } %>
   <script>
     function validations() {
@@ -37,6 +38,8 @@
 
               <textarea id="textarea_1" name="content" rows="20"><%=content%></textarea>
               <input type="hidden" name="syntax" value="basic" id="syntax" />
+              <input type="hidden" name="action" value="<%=show%>" />
+              <input type="hidden" name="pasteUri" value="<%=pasteUri%>" />
               <br>
               <% if(!show.equals("show")){ %>
                 <h6 class="border-bottom border-light">Optional Paste Settings</h6>

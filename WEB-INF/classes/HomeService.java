@@ -16,11 +16,22 @@ public class HomeService {
     String exposure = req.getParameter("exposure");
     String privacy = req.getParameter("privacy");
     String syntax = req.getParameter("syntax");
-    // String password=(!req.getParameter("password").equals(""))?(md5.getMd5(req.getParameter("password"))):"";
-    String password = "";
+    String action = req.getParameter("action");
+    String pasteUri = req.getParameter("pasteUri");
     String title = req.getParameter("title").equals("")
       ? "Untitled"
       : req.getParameter("title");
+      if (action.equals("edit") && pasteUri != null) {
+        String tempTable = "pastes";
+        String tempValues = " content = '" + content + "', title = '"+title+"', privacy = "+privacy+" , exposure = "+exposure;
+        String where = " pasteUri = '" + pasteUri + "'";
+        db.update(tempTable, tempValues, where);
+        res.sendRedirect("/pastebin/app/"+pasteUri);
+      }
+else{
+    // String password=(!req.getParameter("password").equals(""))?(md5.getMd5(req.getParameter("password"))):"";
+    String password = "";
+
     HttpSession session = req.getSession(false);
     int user = 0;
     if (
@@ -57,6 +68,7 @@ public class HomeService {
     if (result == 1) {
       res.sendRedirect("/pastebin/app/" + randStr);
     }
+}
   }
 
   public static void showPaste(
@@ -69,11 +81,15 @@ public class HomeService {
     PrintWriter out = res.getWriter();
     HttpSession session = req.getSession(true);
     String action = req.getParameter("action");
-    
+
     int user = 0;
+    String username="";
     if (
       session != null && (Integer) session.getAttribute("user") != null
-    ) user = (Integer) session.getAttribute("user");
+    ){
+      user = (Integer) session.getAttribute("user");
+      username = (String) session.getAttribute("username");
+    } 
     HashMap<String, String> map = new HashMap<String, String>();
     map.put("select", "*");
     map.put("from", "pastes");
@@ -85,6 +101,7 @@ public class HomeService {
     int privacy = 0;
     int hits = 0;
     int pasteUser = 0;
+    String show = "show";
     try {
       rs = db.select(map);
       rs.next();
@@ -96,47 +113,52 @@ public class HomeService {
         session.setAttribute("error", "Paste is private.");
         res.sendRedirect("/pastebin/app/");
       }
-      if(action!=null){
-      if(action.equals("delete") && pasteUser == user){
-        db.delete("pastes", "pasteUri = '" + subPath + "'");
-        res.sendRedirect("/pastebin/app/");
-      }
-    }
-      int time = tsToSec8601(rs.getString("createdAt"));
-      long unixTime = System.currentTimeMillis() / 1000L;
-      int arr[] = {
-        600,
-        3600,
-        86400,
-        86400 * 7,
-        86400 * 7 * 2,
-        86400 * 30,
-        86400 * 30 * 6,
-        86400 * 30 * 12,
-      };
-      int exposure = rs.getInt("exposure");
-      hits = rs.getInt("hits") + 1;
+      if (action != null) {
+        if (action.equals("delete") && pasteUser == user) {
+          db.delete("pastes", "pasteUri = '" + subPath + "'");
+          res.sendRedirect("/pastebin/app/u/"+username);
+        }
+        if (action.equals("edit") && pasteUser == user) {
+          show = "edit";
+        }
+      } else {
+        int time = tsToSec8601(rs.getString("createdAt"));
+        long unixTime = System.currentTimeMillis() / 1000L;
+        int arr[] = {
+          600,
+          3600,
+          86400,
+          86400 * 7,
+          86400 * 7 * 2,
+          86400 * 30,
+          86400 * 30 * 6,
+          86400 * 30 * 12,
+        };
+        int exposure = rs.getInt("exposure");
+        hits = rs.getInt("hits") + 1;
 
-      String table = "pastes";
-      String values = " hits = " + hits;
-      String where = " pasteUri = '" + subPath + "'";
-      db.update(table, values, where);
+        String table = "pastes";
+        String values = " hits = " + hits;
+        String where = " pasteUri = '" + subPath + "'";
+        db.update(table, values, where);
 
-      boolean burn = false;
-      if (exposure == 0); else if (exposure == 1) burn = true; else if (
-        exposure > 1 && arr[(exposure - 2)] <= (unixTime - time)
-      ) burn = true;
-      if (burn) {
-        db.delete("pastes", "pasteUri = '" + subPath + "'");
+        boolean burn = false;
+        if (exposure == 0); else if (exposure == 1) burn = true; else if (
+          exposure > 1 && arr[(exposure - 2)] <= (unixTime - time)
+        ) burn = true;
+        if (burn) {
+          db.delete("pastes", "pasteUri = '" + subPath + "'");
+        }
       }
     } catch (Exception e) {
       res.sendRedirect("/pastebin/app/");
     }
 
     RequestDispatcher rd = req.getRequestDispatcher(rdUrl);
-    req.setAttribute("show", "show");
+    req.setAttribute("show", show);
     req.setAttribute("content", content);
     req.setAttribute("syntax", syntax);
+    req.setAttribute("pasteUri", subPath);
     rd.forward(req, res);
   }
 

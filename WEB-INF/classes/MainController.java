@@ -39,9 +39,7 @@ try{
               String route = temp.equals("")?"/":temp;
               user.handleRequest(req,res,route);
             break;
-         case "/admin":
-              out.println("in admin");
-            break;
+
         default:
               home.handleRequest(req,res,subPath);
 

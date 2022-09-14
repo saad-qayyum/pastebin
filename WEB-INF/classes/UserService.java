@@ -1,3 +1,5 @@
+import dto.PasteDto;
+import dto.UserDto;
 import jakarta.servlet.*;
 import jakarta.servlet.http.*;
 import java.io.*;
@@ -6,33 +8,51 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.Date;
 import java.util.regex.*;
-import dto.PasteDto;
-
 
 public class UserService {
 
   public static void saveUser(HttpServletRequest req, HttpServletResponse res)
     throws ServletException, IOException, SQLException, ClassNotFoundException {
     DB db = new DB();
+    HttpSession session = req.getSession(true);
     String error = "";
+    int user = 0;
+    if (session != null && (Integer) session.getAttribute("user") != null) {
+      user = (Integer) session.getAttribute("user");
+    }
     PrintWriter out = res.getWriter();
     String name = req.getParameter("name");
+    String action = req.getParameter("action");
     error +=
       (name == null || name.equals("")) ? "Name should not be empty." : "";
-    String username = req.getParameter("username");
-    error +=
-      (username == null || username.equals(""))
-        ? ",Username should not be empty."
-        : "";
-
     String password = md5.getMd5(req.getParameter("password"));
     error +=
       (!isValidPassword(req.getParameter("password")))
         ? ",Password is not strong enough."
         : "";
 
+    if (action.equals("Edit Profile") && user != 0) {
+      if (error.equals("")) {
+        String tb = "user";
+        String toUpdateValues =
+          " name = '" + name + "' , password = '" + password + "'";
+        String cond = " id = " + user;
+        db.update(tb, toUpdateValues, cond);
+        session.setAttribute("name", name);
+        res.sendRedirect("/pastebin/app/u/profile");
+      } else {
+        session.setAttribute("error", error);
+        res.sendRedirect("/pastebin/app/");
+      }
+    }
+
+    String username = req.getParameter("username");
+    error +=
+      (username == null || username.equals(""))
+        ? ",Username should not be empty."
+        : "";
+
     //no username should repeat
-    HttpSession session = req.getSession(true);
 
     try {
       HashMap<String, String> map = new HashMap<String, String>();
@@ -87,7 +107,8 @@ public class UserService {
         session.setAttribute("user", rs.getInt("id"));
         session.setAttribute("username", rs.getString("username"));
         session.setAttribute("role", rs.getInt("type"));
-        res.sendRedirect("/pastebin/app/u/"+username);
+        session.setAttribute("name", rs.getString("name"));
+        res.sendRedirect("/pastebin/app/u/" + username);
       } else {
         error += "Username or password is incorrect.";
         session.setAttribute("error", error);
@@ -119,23 +140,26 @@ public class UserService {
       ResultSet rs = db.select(map);
       if (rs.next()) {
         int user = rs.getInt("id");
-        if((Integer)session.getAttribute("user") != null && user == (Integer)session.getAttribute("user")) isUserHimself=1;
+        if (
+          (Integer) session.getAttribute("user") != null &&
+          user == (Integer) session.getAttribute("user")
+        ) isUserHimself = 1;
         map.put("select", "*");
         map.put("from", "pastes");
-        String forPrivate = (isUserHimself == 1)?" ":" and privacy = 0";
-        map.put("where", "user = "+user+forPrivate);
+        String forPrivate = (isUserHimself == 1) ? " " : " and privacy = 0";
+        map.put("where", "user = " + user + forPrivate);
         ResultSet pastes = db.select(map);
         ArrayList<PasteDto> pasteList = new ArrayList<PasteDto>();
         while (pastes.next()) {
           PasteDto pd = new PasteDto();
-            pd.setPasteUri(pastes.getString("pasteUri"));
-            pd.setAdded(pastes.getString("createdAt"));
-            pd.setTitle(pastes.getString("title"));
-            pd.setHits(pastes.getInt("hits"));
-            pd.setExpiration(pastes.getInt("exposure"));
-            pd.setUser(pastes.getInt("user"));
-            pd.setContent(pastes.getString("content"));
-            pd.setSyntax(pastes.getString("syntax")); 
+          pd.setPasteUri(pastes.getString("pasteUri"));
+          pd.setAdded(pastes.getString("createdAt"));
+          pd.setTitle(pastes.getString("title"));
+          pd.setHits(pastes.getInt("hits"));
+          pd.setExpiration(pastes.getInt("exposure"));
+          pd.setUser(pastes.getInt("user"));
+          pd.setContent(pastes.getString("content"));
+          pd.setSyntax(pastes.getString("syntax"));
           pasteList.add(pd);
         }
         map.put("select", "count(*) count, sum(hits) hits");
@@ -163,6 +187,53 @@ public class UserService {
     //end of no username repeat
 
   }
+
+
+  public static void showUsers(
+    HttpServletRequest req,
+    HttpServletResponse res
+  )
+    throws ServletException, IOException, SQLException, ClassNotFoundException {
+    DB db = new DB();
+    String error = "";
+    HttpSession session = req.getSession(false);
+    try {
+      HashMap<String, String> map = new HashMap<String, String>();
+      map.put("select", "username,user.id idx,count(hits) pasteCount, COALESCE(sum(hits),0) hitsCount");
+      map.put("from", "user");
+      map.put("left join", "pastes");
+      map.put("on", "user.id = pastes.user");
+      map.put("group by", "user.id");
+      PrintWriter out = res.getWriter();
+      ResultSet rs = db.select(map);
+      ArrayList<UserDto> users = new ArrayList<UserDto>();
+      boolean isNext= rs.next(); 
+      if(isNext){
+      while (isNext) {
+          UserDto pd = new UserDto();
+          pd.setUsername(rs.getString("username"));
+          pd.setHits(rs.getInt("hitsCount"));
+          pd.setCount(rs.getInt("pasteCount"));
+          pd.setId(rs.getInt("idx"));
+          users.add(pd);
+          isNext = rs.next();
+        }
+        RequestDispatcher rd = req.getRequestDispatcher("/users.jsp");
+        req.setAttribute("users", users);
+        rd.forward(req, res);
+      }else {
+        error += "Some error occured.";
+        session.setAttribute("error", error);
+        res.sendRedirect("/pastebin/app/");
+      }
+    } catch (Exception e) {
+      //todo error page server failure
+    }
+    //end of no username repeat
+
+  }
+
+
 
   public static boolean isValidPassword(String password) {
     String regex =

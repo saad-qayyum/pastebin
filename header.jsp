@@ -27,11 +27,15 @@
             </a>
             <%
             String username=(String)session.getAttribute("username"); 
+            int role = 1;
+            role = (Integer)session.getAttribute("role"); 
+            
             %>
             <div class="dropdown-menu  dropdown-menu-left" style="
             left: -100%;
         ">
-              <a class="dropdown-item" href="/pastebin/app/u/<%=username%>">Profile</a>
+              <a class="dropdown-item" href="/pastebin/app/u/profile">Profile</a>
+              <%if(role == 0){%><a class="dropdown-item" href="/pastebin/app/u/users">Users</a><%}%>
               <a class="dropdown-item" href="/pastebin/app/u/<%=username%>">My Pastes</a>
               <a class="dropdown-item" href="/pastebin/app/u/logout">Logout</a>
             </div>
@@ -49,7 +53,7 @@
   String[] errorList = error.split(",");
   if(error != null && !error.equals("")){
 %>
-<div class="p-3" style="font-size: smaller;">
+<div class="p-3" style="font-size: smaller;" id="errorContainer">
 <div class="alert alert-danger small text-danger m-0 alert-dismissible fade show" role="alert">
   <ul class="m-0">
   <%
@@ -59,7 +63,7 @@
     <li><%=err%></li>
   <%}%>
 </ul>
-  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+  <button type="button" class="btn-close" data-bs-dismiss="alert" onClick="document.getElementById('errorContainer').style.display='none';" aria-label="Close"></button>
 </div>
 </div>
 <%}}
