@@ -1,13 +1,16 @@
-import dto.PasteDto;
-import dto.UserDto;
-import jakarta.servlet.*;
-import jakarta.servlet.http.*;
+package services;
+import javax.servlet.*;
+import javax.servlet.http.*;
 import java.io.*;
 import java.sql.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.Date;
 import java.util.regex.*;
+import dao.DB;
+import dto.PasteDto;
+import dto.UserDto;
+import helpers.*;
 
 public class UserService {
 
@@ -55,7 +58,7 @@ public class UserService {
     //no username should repeat
 
     try {
-      HashMap<String, String> map = new HashMap<String, String>();
+      LinkedHashMap<String, String> map = new LinkedHashMap<String, String>();
       map.put("select", "*");
       map.put("from", "user");
       map.put("where", "username = '" + username + "'");
@@ -95,7 +98,7 @@ public class UserService {
     HttpSession session = req.getSession(true);
 
     try {
-      HashMap<String, String> map = new HashMap<String, String>();
+      LinkedHashMap<String, String> map = new LinkedHashMap<String, String>();
       map.put("select", "*");
       map.put("from", "user");
       map.put(
@@ -130,20 +133,35 @@ public class UserService {
     DB db = new DB();
     String error = "";
     int isUserHimself = 0;
+    String action = req.getParameter("action");
     HttpSession session = req.getSession(false);
+    int user = 0;int type=1;
+    if (
+      session != null && (Integer) session.getAttribute("user") != null
+    ){
+      user = (Integer) session.getAttribute("user");
+      type = (Integer) session.getAttribute("role");
+    } 
     try {
-      HashMap<String, String> map = new HashMap<String, String>();
+      LinkedHashMap<String, String> map = new LinkedHashMap<String, String>();
       map.put("select", "*");
       map.put("from", "user");
       map.put("where", "username = '" + username + "'");
       PrintWriter out = res.getWriter();
       ResultSet rs = db.select(map);
       if (rs.next()) {
-        int user = rs.getInt("id");
+        user = rs.getInt("id");
+        int tempType = rs.getInt("type");
         if (
           (Integer) session.getAttribute("user") != null &&
           user == (Integer) session.getAttribute("user")
         ) isUserHimself = 1;
+        if (action != null && tempType != 0) {
+          if (action.equals("delete") && type==0) {
+            db.delete("user", "id = " + user);
+            res.sendRedirect("/pastebin/app/u/users");
+          }
+        }
         map.put("select", "*");
         map.put("from", "pastes");
         String forPrivate = (isUserHimself == 1) ? " " : " and privacy = 0";
@@ -168,7 +186,7 @@ public class UserService {
         ResultSet aggregation = db.select(map);
         aggregation.next();
 
-        RequestDispatcher rd = req.getRequestDispatcher("/pastes.jsp");
+        RequestDispatcher rd = req.getRequestDispatcher("/views/pastes.jsp");
         req.setAttribute("pastes", pasteList);
         req.setAttribute("count", aggregation.getInt("count"));
         req.setAttribute("hits", aggregation.getInt("hits"));
@@ -196,16 +214,18 @@ public class UserService {
     throws ServletException, IOException, SQLException, ClassNotFoundException {
     DB db = new DB();
     String error = "";
-    HttpSession session = req.getSession(false);
+    PrintWriter out = res.getWriter();
+    HttpSession session = req.getSession(true);
     try {
-      HashMap<String, String> map = new HashMap<String, String>();
+      LinkedHashMap<String, String> map = new LinkedHashMap<String, String>();
       map.put("select", "username,user.id idx,count(hits) pasteCount, COALESCE(sum(hits),0) hitsCount");
       map.put("from", "user");
       map.put("left join", "pastes");
       map.put("on", "user.id = pastes.user");
+      map.put("where", "user.type != 0");
       map.put("group by", "user.id");
-      PrintWriter out = res.getWriter();
       ResultSet rs = db.select(map);
+
       ArrayList<UserDto> users = new ArrayList<UserDto>();
       boolean isNext= rs.next(); 
       if(isNext){
@@ -218,15 +238,17 @@ public class UserService {
           users.add(pd);
           isNext = rs.next();
         }
-        RequestDispatcher rd = req.getRequestDispatcher("/users.jsp");
-        req.setAttribute("users", users);
-        rd.forward(req, res);
-      }else {
-        error += "Some error occured.";
-        session.setAttribute("error", error);
-        res.sendRedirect("/pastebin/app/");
       }
+      RequestDispatcher rd = req.getRequestDispatcher("/views/users.jsp");
+      req.setAttribute("users", users);
+      rd.forward(req, res);
+      // else {
+      //   error += "Some error occured.";
+      //   session.setAttribute("error", error);
+      //   res.sendRedirect("/pastebin/app/");
+      // }
     } catch (Exception e) {
+      out.println(e);
       //todo error page server failure
     }
     //end of no username repeat

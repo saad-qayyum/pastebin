@@ -3,18 +3,20 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Bootstrap demo</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/css/bootstrap.min.css" rel="stylesheet"
-    integrity="sha384-iYQeCzEYFbKjA/T2uDLTpkwGzCiq6soy8tYaI1GyVh/UjpbCx/TYkiZhlZB6+fzT" crossorigin="anonymous">
-    <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-Fy6S3B9q64WdZWQUiU+q4/2Lc9npb8tCaSX9FK7E8HnRr0Jz8D6OP9dO5Vg3Q9ct" crossorigin="anonymous"></script>
+  <title>Pastebin</title>
+  <link href="http://localhost:8080/pastebin/views/bootstrap/bootstrap.min.css" rel="stylesheet">
+  <script src="http://localhost:8080/pastebin/views/bootstrap/jquery.slim.min.js" ></script>
+  <script src="http://localhost:8080/pastebin/views/bootstrap/bootstrap.bundle.min.js" ></script>
   </head>
 <body class="bg-dark text-light">
     
   <nav class="navbar bg-dark shadow shadow-lg sticky-top border-bottom border-secondary navbar-dark">
     <div class="container-fluid">
       <a class="navbar-brand" href="/pastebin/app/">Pastebin</a>
+
       <div class="d-flex">
+        <a class="btn btn-sm btn-success me-1" href="/pastebin/app/"> +Paste</a>
+
         <%
         if((Integer)session.getAttribute("user") == null){ %>
         <a class="btn btn-outline-light me-1 btn-sm" href="/pastebin/app/u/signup">Signup</a>
@@ -22,7 +24,7 @@
         <%}
         else {%>
           <div class="dropdown ">
-            <a class="btn btn-secondary dropleft dropdown-toggle" href="#" role="button" data-toggle="dropdown" aria-expanded="false">
+            <a class="btn btn-secondary btn-sm dropdown-toggle" href="#" role="button" data-toggle="dropdown" aria-expanded="false">
               Menu
             </a>
             <%
@@ -31,8 +33,8 @@
             role = (Integer)session.getAttribute("role"); 
             
             %>
-            <div class="dropdown-menu  dropdown-menu-left" style="
-            left: -100%;
+            <div class="dropdown-menu dropdown-menu-left" style="
+            left: -120%;
         ">
               <a class="dropdown-item" href="/pastebin/app/u/profile">Profile</a>
               <%if(role == 0){%><a class="dropdown-item" href="/pastebin/app/u/users">Users</a><%}%>

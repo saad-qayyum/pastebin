@@ -1,10 +1,12 @@
-import jakarta.servlet.*;
-import jakarta.servlet.http.*;
+package services;
+import javax.servlet.*;
+import javax.servlet.http.*;
 import java.io.*;
 import java.sql.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.Date;
+import dao.DB;
 
 public class HomeService {
 
@@ -23,7 +25,7 @@ public class HomeService {
       : req.getParameter("title");
       if (action.equals("edit") && pasteUri != null) {
         String tempTable = "pastes";
-        String tempValues = " content = '" + content + "', title = '"+title+"', privacy = "+privacy+" , exposure = "+exposure;
+        String tempValues = " content = '" + content + "', title = '"+title+"', privacy = "+privacy+" , exposure = "+exposure+" , syntax = '"+syntax+"'";
         String where = " pasteUri = '" + pasteUri + "'";
         db.update(tempTable, tempValues, where);
         res.sendRedirect("/pastebin/app/"+pasteUri);
@@ -44,7 +46,7 @@ else{
       "content,exposure,privacy,password,title,pasteUri,syntax,user";
     String values =
       "'" +
-      content +
+      content.replaceAll("'", "") +
       "'," +
       "'" +
       exposure +
@@ -82,30 +84,34 @@ else{
     HttpSession session = req.getSession(true);
     String action = req.getParameter("action");
 
-    int user = 0;
+    int user = 0;int type=1;
     String username="";
     if (
       session != null && (Integer) session.getAttribute("user") != null
     ){
       user = (Integer) session.getAttribute("user");
+      type = (Integer) session.getAttribute("role");
       username = (String) session.getAttribute("username");
     } 
-    HashMap<String, String> map = new HashMap<String, String>();
+    LinkedHashMap<String, String> map = new LinkedHashMap<String, String>();
     map.put("select", "*");
     map.put("from", "pastes");
     map.put("where", "pasteUri = '" + subPath + "'");
     ResultSet rs;
-    String rdUrl = "/index.jsp";
+    String rdUrl = "/views/index.jsp";
     String content = "";
     String syntax = "basic";
     int privacy = 0;
     int hits = 0;
+    String title="Untitled";
     int pasteUser = 0;
+    int exposure = 0;
     String show = "show";
     try {
       rs = db.select(map);
       rs.next();
       content = rs.getString("content");
+      title = rs.getString("title");
       syntax = rs.getString("syntax");
       privacy = rs.getInt("privacy");
       pasteUser = rs.getInt("user");
@@ -114,8 +120,17 @@ else{
         res.sendRedirect("/pastebin/app/");
       }
       if (action != null) {
-        if (action.equals("delete") && pasteUser == user) {
+        if (action.equals("delete") && (pasteUser == user || type==0)) {
           db.delete("pastes", "pasteUri = '" + subPath + "'");
+          if(type == 0){
+            LinkedHashMap<String, String> map1 = new LinkedHashMap<String, String>();
+            map1.put("select", "username");
+            map1.put("from", "user");
+            map1.put("where", "id = " +pasteUser);
+            ResultSet u = db.select(map1);
+            u.next();
+            username = u.getString("username"); 
+          }
           res.sendRedirect("/pastebin/app/u/"+username);
         }
         if (action.equals("edit") && pasteUser == user) {
@@ -134,7 +149,7 @@ else{
           86400 * 30 * 6,
           86400 * 30 * 12,
         };
-        int exposure = rs.getInt("exposure");
+        exposure = rs.getInt("exposure");
         hits = rs.getInt("hits") + 1;
 
         String table = "pastes";
@@ -157,6 +172,9 @@ else{
     RequestDispatcher rd = req.getRequestDispatcher(rdUrl);
     req.setAttribute("show", show);
     req.setAttribute("content", content);
+    req.setAttribute("privacy", privacy);
+    req.setAttribute("exposure", exposure);
+    req.setAttribute("title", title);
     req.setAttribute("syntax", syntax);
     req.setAttribute("pasteUri", subPath);
     rd.forward(req, res);

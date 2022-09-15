@@ -1,3 +1,4 @@
+package dao;
 import java.io.*;
 import java.sql.*;
 import javax.swing.*;
@@ -9,9 +10,9 @@ public class DB {
   private Connection con;
   private Statement st;
 
-  DB() throws IOException,SQLException,ClassNotFoundException{
+ public DB() throws IOException,SQLException,ClassNotFoundException{
       Class.forName("com.mysql.jdbc.Driver");
-      url = "jdbc:mysql://127.0.0.1/pastebin";
+      url = "jdbc:mysql://127.0.0.1/paste";
       con=DriverManager.getConnection(url, "root", "");
       st=con.createStatement();
   }
@@ -44,15 +45,15 @@ public int update(String tableName,String values,String condition) throws IOExce
     }
 } 
   
-  public ResultSet select(Map<String, String> queryMap) throws IOException {
+  public ResultSet select(LinkedHashMap<String, String> queryMap) throws IOException, Exception {
+    String query = "";
   try{
-     String query = "";
      for (String i : queryMap.keySet()) {
          query +=" "+i+" "+ (String)queryMap.get(i)+" ";
     } 
      return st.executeQuery( query );
     }catch(Exception e){
-      return null;
+      throw new Exception("Error occured while retrieving data form db.");
     }
 
   }

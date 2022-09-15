@@ -1,8 +1,9 @@
-import jakarta.servlet.*;
-import jakarta.servlet.http.*;
+package controllers;
+import javax.servlet.*;
+import javax.servlet.http.*;
 import java.io.*;
 import java.sql.*;
-
+import services.*;
 public class user {
 
   public static void handleRequest(
@@ -43,28 +44,28 @@ public class user {
         if (
           session != null && (Integer) session.getAttribute("user") != null
         ) res.sendRedirect("/pastebin/app/");
-        RequestDispatcher rd = req.getRequestDispatcher("/auth.jsp");
+        RequestDispatcher rd = req.getRequestDispatcher("/views/auth.jsp");
         rd.forward(req, res);
         break;
         case "/profile":
         if (
           !(session != null && (Integer) session.getAttribute("user") != null)
         ) res.sendRedirect("/pastebin/app/");
-        rd = req.getRequestDispatcher("/auth.jsp");
+        rd = req.getRequestDispatcher("/views/auth.jsp");
         req.setAttribute("page", "Edit Profile");
         rd.forward(req, res);
         break;
         case "/users":
         if (
-          !(session != null && (Integer) session.getAttribute("user") != null || (Integer) session.getAttribute("role") != 0)
-        ) res.sendRedirect("/pastebin/app/");
+          session == null || (Integer) session.getAttribute("user") == null || (Integer) session.getAttribute("role") == null || (Integer) session.getAttribute("role") != 0)
+        res.sendRedirect("/pastebin/app/");
         UserService.showUsers(req, res);
         break;
       case "/login":
         if (
           session != null && (Integer) session.getAttribute("user") != null
         ) res.sendRedirect("/pastebin/app/");
-        rd = req.getRequestDispatcher("/auth.jsp");
+        rd = req.getRequestDispatcher("/views/auth.jsp");
         req.setAttribute("page", "Login");
         rd.forward(req, res);
         break;

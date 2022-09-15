@@ -44,9 +44,11 @@ username = username.substring(0,1).toUpperCase() + username.substring(1).toLower
                     <td><%=date[0]%></td>
                     <td><%=expires[pd.getExpiration()]%></td>
                     <td><%=pd.getHits()%></td>
-                    <td><%=pd.getSyntax()%></td>  
-                    <% if(isUserHimself == 1){%><td><a href="/pastebin/app/<%=pd.getPasteUri()%>?action=edit">Edit</a> | <a  href="/pastebin/app/<%=pd.getPasteUri()%>?action=delete">Delete</a> </td> <%}%> 
-                     
+                    <td><%=pd.getSyntax()%></td>
+                    <td>  
+                    <% if(isUserHimself == 1){%><a href="/pastebin/app/<%=pd.getPasteUri()%>?action=edit">Edit</a>  | <%}%> 
+                    <% if(isUserHimself == 1 || ((Integer)session.getAttribute("role") !=null && (Integer)session.getAttribute("role") == 0)){%>  <a  href="/pastebin/app/<%=pd.getPasteUri()%>?action=delete">Delete</a> <%}%> 
+                    </td>
                   </tr>
                  <%}%>
             </tbody>

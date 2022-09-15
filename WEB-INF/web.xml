@@ -3,7 +3,7 @@
 
 	<servlet>
 		<servlet-name>Controller</servlet-name>
-		<servlet-class>MainController</servlet-class>
+		<servlet-class>controllers.MainController</servlet-class>
 	</servlet>
 
 	<servlet-mapping>	

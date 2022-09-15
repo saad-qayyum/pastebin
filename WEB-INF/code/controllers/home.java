@@ -1,7 +1,9 @@
-import jakarta.servlet.*;
-import jakarta.servlet.http.*;
+package controllers;
+import javax.servlet.*;
+import javax.servlet.http.*;
 import java.io.*;
 import java.sql.*;
+import services.*;
 
 public class home{
 public static void handleRequest(HttpServletRequest req, HttpServletResponse res,String subPath) throws ServletException, IOException,SQLException,ClassNotFoundException {
@@ -25,7 +27,7 @@ String method = req.getMethod();
 public static void handleGetRequests(HttpServletRequest req, HttpServletResponse res,String subPath) throws ServletException, IOException, SQLException,ClassNotFoundException {
     switch(subPath){
       case "/":
-      RequestDispatcher rd = req.getRequestDispatcher("/index.jsp");	
+      RequestDispatcher rd = req.getRequestDispatcher("/views/index.jsp");	
 	    rd.forward(req,res);
       break;
       default:
